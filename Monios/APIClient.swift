@@ -9,16 +9,7 @@ import Foundation
 
 class APIClient {
     // Change this to your server URL
-    #if DEBUG
-    // Use your Mac's IP for physical device, localhost for simulator
-    #if targetEnvironment(simulator)
-    static let baseURL = "http://localhost:8000"
-    #else
-    static let baseURL = "http://100.119.70.61:8000"
-    #endif
-    #else
-    static let baseURL = "https://your-production-server.com"
-    #endif
+    static let baseURL = "https://swairshah--monios-api-fastapi-app-dev.modal.run"
 
     private let tokenStorage: TokenStorage
     private let session: URLSession
