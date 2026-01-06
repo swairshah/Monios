@@ -8,6 +8,7 @@ import asyncio
 import traceback
 import os
 from collections import deque
+from pathlib import Path
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from claude_agent_sdk import (
     ClaudeSDKClient,
@@ -25,6 +26,7 @@ _session_id: str | None = None
 _stderr_lines: deque[str] = deque(maxlen=200)
 _loop = asyncio.new_event_loop()
 asyncio.set_event_loop(_loop)
+_SESSION_FILE = Path("/workspace/.session_id")
 
 
 def _on_stderr(line: str) -> None:
@@ -39,20 +41,44 @@ def _missing_api_key() -> bool:
     )
 
 
+def _load_session_id() -> str | None:
+    try:
+        return _SESSION_FILE.read_text().strip() or None
+    except OSError:
+        return None
+
+
+def _save_session_id(session_id: str) -> None:
+    try:
+        _SESSION_FILE.write_text(session_id)
+    except OSError:
+        pass
+
+
+def _clear_session_id() -> None:
+    try:
+        _SESSION_FILE.unlink(missing_ok=True)
+    except OSError:
+        pass
+
+
 async def get_client() -> ClaudeSDKClient:
     """Get or create the Claude SDK client."""
-    global _client
+    global _client, _session_id
     if _client is None:
         if _missing_api_key():
             raise RuntimeError(
                 "Missing API key. Set ANTHROPIC_API_KEY (or CLAUDE_API_KEY) in monios-secrets."
             )
+        if _session_id is None:
+            _session_id = _load_session_id()
         options = ClaudeAgentOptions(
             system_prompt=SYSTEM_PROMPT,
             allowed_tools=[],
             permission_mode="bypassPermissions",
             max_turns=10,
             cwd="/workspace",  # User's isolated workspace
+            resume=_session_id,
             extra_args={"debug-to-stderr": None},
             stderr=_on_stderr,
         )
@@ -85,6 +111,7 @@ async def chat(message: str) -> tuple[str, str]:
 
     if new_session_id:
         _session_id = new_session_id
+        _save_session_id(new_session_id)
 
     return response_text, _session_id
 
@@ -99,6 +126,7 @@ async def clear():
             pass
         _client = None
     _session_id = None
+    _clear_session_id()
 
 
 class ChatHandler(BaseHTTPRequestHandler):

@@ -90,6 +90,59 @@ header {
   color: var(--accent-teal);
 }
 
+.user-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-email {
+  color: var(--accent-teal);
+  font-size: 0.85rem;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.google-signin-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--accent-teal);
+  border-radius: 4px;
+  color: var(--accent-teal);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.75rem;
+  transition: background-color 0.2s, color 0.2s;
+  font-family: inherit;
+}
+
+.google-signin-btn:hover:not(:disabled) {
+  background: var(--accent-teal);
+  color: var(--bg);
+}
+
+.google-signin-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.signout-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.5rem;
+  transition: color 0.2s;
+  font-family: inherit;
+}
+
+.signout-btn:hover {
+  color: #ef4444;
+}
+
 .user-input {
   background: var(--bg-card);
   border: 1px solid var(--accent-teal);

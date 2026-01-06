@@ -10,9 +10,14 @@ except ImportError:
     pass  # dotenv not needed in production
 
 
+# Google OAuth Client IDs
+GOOGLE_CLIENT_ID_IOS = "558486289958-glki40l5f7nl1dlvnb9ekhakjn9r2vjc.apps.googleusercontent.com"
+GOOGLE_CLIENT_ID_WEB = "558486289958-j768tfatvm4mqkpji50vc3tgo85kf01q.apps.googleusercontent.com"
+
+
 @dataclass
 class Settings:
-    google_client_id: str
+    google_client_ids: list[str]  # Support multiple client IDs (iOS + Web)
     jwt_secret_key: str
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 30
@@ -24,7 +29,7 @@ class Settings:
 @lru_cache
 def get_settings() -> Settings:
     return Settings(
-        google_client_id=os.environ.get("GOOGLE_CLIENT_ID", ""),
+        google_client_ids=[GOOGLE_CLIENT_ID_IOS, GOOGLE_CLIENT_ID_WEB],
         jwt_secret_key=os.environ.get("JWT_SECRET_KEY", "dev-secret-key"),
         jwt_algorithm=os.environ.get("JWT_ALGORITHM", "HS256"),
         jwt_access_token_expire_minutes=int(os.environ.get("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30")),

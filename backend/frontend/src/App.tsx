@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useAuth } from "./AuthContext";
 
 interface Message {
   id: string;
@@ -18,21 +19,25 @@ function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
 }
 
-function getInitialUserId(): string {
-  return localStorage.getItem("monios-user") || "guest";
+function getInitialGuestId(): string {
+  return localStorage.getItem("monios-guest-user") || "guest";
 }
 
 export default function App() {
+  const auth = useAuth();
   const [dark, setDark] = useState(getInitialTheme);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userId, setUserId] = useState(getInitialUserId);
+  const [guestId, setGuestId] = useState(getInitialGuestId);
   const [editingUser, setEditingUser] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const userInputRef = useRef<HTMLInputElement>(null);
+
+  // Get current user identifier (email for auth, guestId for guests)
+  const userId = auth.isAuthenticated ? auth.user?.email || "user" : guestId;
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
@@ -51,22 +56,33 @@ export default function App() {
   const clearChat = async () => {
     setMessages([]);
     setError(null);
-    // Clear server-side session
     try {
-      await fetch("/chat/clear", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_id: userId }),
-      });
+      if (auth.isAuthenticated) {
+        // Use authenticated endpoint
+        await fetch("/api/chat/clear", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...auth.getAuthHeaders(),
+          },
+        });
+      } else {
+        // Use guest endpoint
+        await fetch("/chat/clear", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: guestId }),
+        });
+      }
     } catch {
       // Ignore clear errors
     }
   };
 
-  const saveUserId = (newId: string) => {
+  const saveGuestId = (newId: string) => {
     const trimmed = newId.trim() || "guest";
-    setUserId(trimmed);
-    localStorage.setItem("monios-user", trimmed);
+    setGuestId(trimmed);
+    localStorage.setItem("monios-guest-user", trimmed);
     setEditingUser(false);
   };
 
@@ -93,13 +109,33 @@ export default function App() {
     setLoading(true);
 
     try {
-      const response = await fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed, user_id: userId }),
-      });
+      let response: Response;
+
+      if (auth.isAuthenticated) {
+        // Use authenticated endpoint
+        response = await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...auth.getAuthHeaders(),
+          },
+          body: JSON.stringify({ content: trimmed }),
+        });
+      } else {
+        // Use guest endpoint
+        response = await fetch("/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: trimmed, user_id: guestId }),
+        });
+      }
 
       if (!response.ok) {
+        if (response.status === 401 && auth.isAuthenticated) {
+          // Token expired, sign out
+          auth.signOut();
+          throw new Error("Session expired. Please sign in again.");
+        }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
@@ -123,7 +159,6 @@ export default function App() {
                 }
               }
             } else if (parsed.type === "result") {
-              // Final result message
               if (parsed.result) {
                 setMessages(prev => [...prev, {
                   id: generateId(),
@@ -132,7 +167,6 @@ export default function App() {
                 }]);
               }
             } else if (parsed.content) {
-              // Simple response format
               setMessages(prev => [...prev, {
                 id: generateId(),
                 type: "assistant",
@@ -140,7 +174,6 @@ export default function App() {
               }]);
             }
           } catch {
-            // Not JSON, treat as plain text
             if (data.trim()) {
               setMessages(prev => [...prev, {
                 id: generateId(),
@@ -164,7 +197,6 @@ export default function App() {
             }]);
           }
         } catch {
-          // Plain text response
           if (text.trim()) {
             setMessages(prev => [...prev, {
               id: generateId(),
@@ -201,25 +233,52 @@ export default function App() {
       <header>
         <span className="logo">~ monios</span>
         <div className="header-actions">
-          {editingUser ? (
-            <input
-              ref={userInputRef}
-              className="user-input"
-              defaultValue={userId}
-              onBlur={(e) => saveUserId(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") saveUserId(e.currentTarget.value);
-                if (e.key === "Escape") setEditingUser(false);
-              }}
-            />
+          {auth.isAuthenticated ? (
+            // Authenticated user display
+            <>
+              {auth.user?.picture && (
+                <img
+                  src={auth.user.picture}
+                  alt=""
+                  className="user-avatar"
+                />
+              )}
+              <span className="user-email">{auth.user?.email}</span>
+              <button className="signout-btn" onClick={auth.signOut}>
+                sign out
+              </button>
+            </>
           ) : (
-            <button
-              className="user-btn"
-              onClick={() => setEditingUser(true)}
-              title="Click to change user"
-            >
-              @{userId}
-            </button>
+            // Guest mode with login option
+            <>
+              {editingUser ? (
+                <input
+                  ref={userInputRef}
+                  className="user-input"
+                  defaultValue={guestId}
+                  onBlur={(e) => saveGuestId(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveGuestId(e.currentTarget.value);
+                    if (e.key === "Escape") setEditingUser(false);
+                  }}
+                />
+              ) : (
+                <button
+                  className="user-btn"
+                  onClick={() => setEditingUser(true)}
+                  title="Click to change guest name"
+                >
+                  @{guestId}
+                </button>
+              )}
+              <button
+                className="google-signin-btn"
+                onClick={auth.signInWithGoogle}
+                disabled={auth.isLoading}
+              >
+                {auth.isLoading ? "..." : "sign in"}
+              </button>
+            </>
           )}
           <button className="clear-btn" onClick={clearChat}>
             clear
@@ -233,7 +292,9 @@ export default function App() {
       <div className="messages">
         {messages.length === 0 && (
           <div className="message system">
-            send a message to start chatting
+            {auth.isAuthenticated
+              ? `signed in as ${auth.user?.email}. send a message to start chatting`
+              : "send a message to start chatting (or sign in with Google)"}
           </div>
         )}
 
