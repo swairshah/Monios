@@ -14,6 +14,7 @@ async def get_or_create_client(user_id: str) -> ClaudeSDKClient:
         options = ClaudeAgentOptions(
             system_prompt=SYSTEM_PROMPT,
             allowed_tools=[],
+            permission_mode="bypassPermissions",
             max_turns=10  # Allow multiple turns for tool use + response
         )
         client = ClaudeSDKClient(options=options)

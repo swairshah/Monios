@@ -34,6 +34,7 @@ app = modal.App(name="monios-api", image=image)
 
 @app.function(
     secrets=[modal.Secret.from_name("monios-secrets")],
+    env={"IS_SANDBOX": "1"},
 )
 @modal.asgi_app()
 def fastapi_app():
