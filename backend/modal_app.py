@@ -30,11 +30,12 @@ image = (
 )
 
 app = modal.App(name="monios-api", image=image)
-
+user_volume = modal.Volume.from_name("swair-monios-volume", create_if_missing=True)
 
 @app.function(
     secrets=[modal.Secret.from_name("monios-secrets")],
     env={"IS_SANDBOX": "1"},
+    volumes={"/workspace": user_volume}
 )
 @modal.asgi_app()
 def fastapi_app():
