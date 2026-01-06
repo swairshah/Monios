@@ -7,7 +7,18 @@ import uvicorn
 import os
 from config import get_settings
 from routes import auth_router, chat_router
-from sessions import get_response, clear_session
+
+# Use sandbox_manager on Modal, sessions locally
+IS_MODAL = os.environ.get("MODAL_ENVIRONMENT") is not None
+
+if IS_MODAL:
+    import sandbox_manager
+    async def get_response(message: str, user_id: str):
+        return await sandbox_manager.send_message(user_id, message)
+    async def clear_session(user_id: str):
+        return await sandbox_manager.clear_session(user_id)
+else:
+    from sessions import get_response, clear_session
 
 app = FastAPI(
     title="Monios API",
