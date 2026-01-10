@@ -19,7 +19,7 @@ struct ContentView: View {
     // Panel configuration
     private let panelWidth: CGFloat = 300
     private let dragThreshold: CGFloat = 100
-    private let edgeDragWidth: CGFloat = 30
+    private let edgeDragWidth: CGFloat = 60
 
     var body: some View {
         Group {

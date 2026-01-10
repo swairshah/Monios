@@ -50,12 +50,19 @@ class WebChatRequest(BaseModel):
 async def web_chat(request: WebChatRequest):
     """Public chat endpoint for web UI."""
     try:
-        response_text, session_id = await get_response(request.message, request.user_id)
+        response_text, session_id, tool_events = await get_response(
+            request.message, request.user_id
+        )
 
         if not response_text:
             return {"content": "No response generated (empty result)", "user_id": request.user_id}
 
-        return {"content": response_text, "user_id": request.user_id}
+        return {
+            "content": response_text,
+            "user_id": request.user_id,
+            "tool_events": tool_events,
+            "session_id": session_id,
+        }
 
     except Exception as e:
         import traceback

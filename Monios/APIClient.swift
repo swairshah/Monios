@@ -8,8 +8,11 @@
 import Foundation
 
 class APIClient {
-    // Change this to your server URL
+    #if DEBUG
+    static let baseURL = "http://127.0.0.1:8000"
+    #else
     static let baseURL = "https://swairshah--monios-api-fastapi-app-dev.modal.run"
+    #endif
 
     private let tokenStorage: TokenStorage
     private let session: URLSession

@@ -30,22 +30,6 @@ struct MessageBubbleView: View {
             }
 
             VStack(alignment: message.isUser ? .trailing : .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    if !message.isUser {
-                        Text("$")
-                            .font(TerminalTheme.monoFont)
-                            .foregroundColor(TerminalTheme.accent)
-                    }
-                    Text(message.isUser ? "you" : "monios")
-                        .font(TerminalTheme.monoFontSmall)
-                        .foregroundColor(TerminalTheme.secondaryText)
-                    if message.isUser {
-                        Text(">")
-                            .font(TerminalTheme.monoFont)
-                            .foregroundColor(TerminalTheme.accentBlue)
-                    }
-                }
-
                 Text(message.content)
                     .font(TerminalTheme.monoFont)
                     .foregroundColor(TerminalTheme.primaryText)
@@ -83,15 +67,6 @@ struct TypingIndicatorView: View {
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    Text("$")
-                        .font(TerminalTheme.monoFont)
-                        .foregroundColor(TerminalTheme.accent)
-                    Text("monios")
-                        .font(TerminalTheme.monoFontSmall)
-                        .foregroundColor(TerminalTheme.secondaryText)
-                }
-
                 HStack(spacing: 4) {
                     ForEach(0..<3, id: \.self) { index in
                         Circle()

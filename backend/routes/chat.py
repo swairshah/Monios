@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from typing import Any
 from typing import Optional
 from datetime import datetime, timezone
 import random
@@ -26,10 +27,20 @@ class ChatMessage(BaseModel):
     content: str
 
 
+class ToolEvent(BaseModel):
+    type: str
+    name: str | None = None
+    input: dict[str, Any] | None = None
+    tool_use_id: str | None = None
+    content: Any | None = None
+    is_error: bool | None = None
+
+
 class ChatResponse(BaseModel):
     session_id: Optional[str] = None
     id: str
     content: str
+    tool_events: list[ToolEvent] = []
     timestamp: str
     user_email: str
 
@@ -42,7 +53,9 @@ async def chat(
 ):
     """Protected chat endpoint with conversation history."""
     try:
-        response_text, session_id = await get_response(message.content, user.user_id, session_id)
+        response_text, session_id, tool_events = await get_response(
+            message.content, user.user_id, session_id
+        )
 
         if not response_text:
             response_text = "I couldn't generate a response. Please try again."
@@ -51,6 +64,7 @@ async def chat(
             session_id=session_id,
             id=f"msg_{random.randint(100000, 999999)}",
             content=response_text,
+            tool_events=tool_events,
             timestamp=datetime.now(timezone.utc).isoformat(),
             user_email=user.email,
         )

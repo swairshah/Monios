@@ -130,6 +130,13 @@ class AuthManager: ObservableObject {
 
     // MARK: - Development Helper
 
+    #if DEBUG
+    func devSignIn() async {
+        isLoading = true
+        await simulateAuth()
+    }
+    #endif
+
     private func simulateAuth() async {
         // Simulate network delay
         try? await Task.sleep(nanoseconds: 1_000_000_000)
@@ -141,7 +148,7 @@ class AuthManager: ObservableObject {
         )
 
         currentUser = User(
-            id: "dev_user_123",
+            id: "dev_user",
             email: "dev@example.com",
             name: "Dev User",
             picture: nil

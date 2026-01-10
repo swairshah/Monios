@@ -163,7 +163,7 @@ async def _wait_for_ready(tunnel_url: str, timeout: float = 60.0):
             await asyncio.sleep(1.0)
 
 
-async def send_message(user_id: str, message: str) -> tuple[str, str]:
+async def send_message(user_id: str, message: str) -> tuple[str, str, list[dict[str, object]]]:
     """Send a message to the user's sandbox and get response."""
     sb, tunnel_url = await get_or_create_sandbox(user_id)
 
@@ -188,7 +188,7 @@ async def send_message(user_id: str, message: str) -> tuple[str, str]:
         if "error" in data:
             raise Exception(data["error"])
 
-        return data.get("content", ""), data.get("session_id", "")
+        return data.get("content", ""), data.get("session_id", ""), data.get("tool_events", [])
 
 
 async def clear_session(user_id: str) -> bool:

@@ -9,6 +9,8 @@ from claude_agent_sdk import (
     AssistantMessage,
     TextBlock,
     SystemMessage,
+    ToolUseBlock,
+    ToolResultBlock,
 )
 
 # Shared session store for all users (web + iOS)
@@ -75,7 +77,9 @@ async def clear_session(user_id: str) -> bool:
         existed = True
     return existed
 
-async def get_response(message: str, user_id: str, session_id: str | None = None) -> (str, str):
+async def get_response(
+    message: str, user_id: str, session_id: str | None = None
+) -> tuple[str, str | None, list[dict[str, object]]]:
     """Send message and get response for a user."""
     client = await get_or_create_client(user_id)
 
@@ -91,6 +95,7 @@ async def get_response(message: str, user_id: str, session_id: str | None = None
         await client.query(prompt=message)
 
     response_text = ""
+    tool_events: list[dict[str, object]] = []
     new_session_id = None
     async for msg in client.receive_response():
         if isinstance(msg, SystemMessage):
@@ -100,10 +105,28 @@ async def get_response(message: str, user_id: str, session_id: str | None = None
             for block in msg.content:
                 if isinstance(block, TextBlock):
                     response_text += block.text
+                elif isinstance(block, ToolUseBlock):
+                    tool_events.append(
+                        {
+                            "type": "tool_use",
+                            "name": block.name,
+                            "input": block.input,
+                            "tool_use_id": block.id,
+                        }
+                    )
+                elif isinstance(block, ToolResultBlock):
+                    tool_events.append(
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": block.tool_use_id,
+                            "content": block.content,
+                            "is_error": block.is_error,
+                        }
+                    )
 
     # Persist the session_id for this user
     if new_session_id:
         _session_ids[user_id] = new_session_id
         _save_session_ids()
 
-    return response_text, new_session_id
+    return response_text, new_session_id, tool_events

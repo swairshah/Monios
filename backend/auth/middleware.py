@@ -1,9 +1,13 @@
+import os
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from .jwt import verify_token, TokenData
 
 # Bearer token security scheme
 bearer_scheme = HTTPBearer(auto_error=False)
+
+# Dev mode bypass - only enable when DEV_MODE=1
+DEV_MODE = os.environ.get("DEV_MODE", "0") == "1"
 
 
 async def get_current_user(
@@ -22,6 +26,14 @@ async def get_current_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing authentication token",
             headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # Dev mode bypass - accept fake dev tokens
+    if DEV_MODE and credentials.credentials.startswith("dev_access_token_"):
+        return TokenData(
+            user_id="dev_user",
+            email="dev@example.com",
+            exp=None
         )
 
     token_data = verify_token(credentials.credentials)

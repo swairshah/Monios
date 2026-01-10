@@ -37,8 +37,6 @@ struct UserProfileView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     // Info header
                     HStack(spacing: 6) {
-                        Text("$")
-                            .foregroundColor(TerminalTheme.accent)
                         Text("user profile")
                             .foregroundColor(TerminalTheme.primaryText)
                         Spacer()
@@ -81,14 +79,9 @@ struct UserProfileView: View {
 
             Spacer()
 
-            HStack(spacing: 8) {
-                Text("profile")
-                    .font(TerminalTheme.monoFontTitle)
-                    .foregroundColor(TerminalTheme.primaryText)
-                Text("@")
-                    .font(TerminalTheme.monoFontLarge)
-                    .foregroundColor(TerminalTheme.accent)
-            }
+            Text("profile")
+                .font(TerminalTheme.monoFontTitle)
+                .foregroundColor(TerminalTheme.primaryText)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)

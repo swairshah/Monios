@@ -50,14 +50,9 @@ struct SessionView: View {
 
     private var headerView: some View {
         HStack {
-            HStack(spacing: 8) {
-                Text("#")
-                    .font(TerminalTheme.monoFontLarge)
-                    .foregroundColor(TerminalTheme.accent)
-                Text("session")
-                    .font(TerminalTheme.monoFontTitle)
-                    .foregroundColor(TerminalTheme.primaryText)
-            }
+            Text("session")
+                .font(TerminalTheme.monoFontTitle)
+                .foregroundColor(TerminalTheme.primaryText)
 
             Spacer()
 
@@ -83,13 +78,9 @@ struct SessionView: View {
 
     private func sectionView<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 6) {
-                Text("$")
-                    .foregroundColor(TerminalTheme.accent)
-                Text(title)
-                    .foregroundColor(TerminalTheme.primaryText)
-            }
-            .font(TerminalTheme.monoFont)
+            Text(title)
+                .font(TerminalTheme.monoFont)
+                .foregroundColor(TerminalTheme.primaryText)
 
             VStack(alignment: .leading, spacing: 8) {
                 content()
@@ -120,13 +111,9 @@ struct SessionView: View {
 
     private var actionsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 6) {
-                Text("$")
-                    .foregroundColor(TerminalTheme.accent)
-                Text("actions")
-                    .foregroundColor(TerminalTheme.primaryText)
-            }
-            .font(TerminalTheme.monoFont)
+            Text("actions")
+                .font(TerminalTheme.monoFont)
+                .foregroundColor(TerminalTheme.primaryText)
 
             VStack(spacing: 8) {
                 actionButton(icon: "trash", label: "clear chat", isDestructive: false) {

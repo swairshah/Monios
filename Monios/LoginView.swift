@@ -22,10 +22,6 @@ struct LoginView: View {
 
                 // Logo and title
                 VStack(spacing: 16) {
-                    Text("~")
-                        .font(.system(size: 60, design: .monospaced))
-                        .foregroundColor(TerminalTheme.accent)
-
                     Text("monios")
                         .font(TerminalTheme.monoFontTitle)
                         .foregroundColor(TerminalTheme.primaryText)
@@ -34,16 +30,6 @@ struct LoginView: View {
                         .font(TerminalTheme.monoFont)
                         .foregroundColor(TerminalTheme.secondaryText)
                 }
-                .padding(.bottom, 60)
-
-                // Features
-                VStack(alignment: .leading, spacing: 12) {
-                    featureRow(icon: "checkmark", text: "zero config, just works")
-                    featureRow(icon: "moon.fill", text: "dark mode by default")
-                    featureRow(icon: "textformat", text: "monospace everything")
-                    featureRow(icon: "lock.fill", text: "secure authentication")
-                }
-                .padding(.horizontal, 40)
                 .padding(.bottom, 60)
 
                 Spacer()
@@ -92,7 +78,7 @@ struct LoginView: View {
                     #if DEBUG
                     Button(action: {
                         Task {
-                            await authManager.signInWithGoogle(presentingWindow: nil)
+                            await authManager.devSignIn()
                         }
                     }) {
                         HStack(spacing: 8) {
@@ -122,19 +108,6 @@ struct LoginView: View {
         }
         .onChange(of: authManager.error) { _, newValue in
             showingError = newValue != nil
-        }
-    }
-
-    private func featureRow(icon: String, text: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 12))
-                .foregroundColor(TerminalTheme.accent)
-                .frame(width: 20)
-
-            Text(text)
-                .font(TerminalTheme.monoFontSmall)
-                .foregroundColor(TerminalTheme.secondaryText)
         }
     }
 

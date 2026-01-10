@@ -3,8 +3,18 @@ import { useAuth } from "./AuthContext";
 
 interface Message {
   id: string;
-  type: "user" | "assistant" | "system";
+  type: "user" | "assistant" | "system" | "tool";
   content: string;
+  tool?: ToolEvent;
+}
+
+interface ToolEvent {
+  type: "tool_use" | "tool_result";
+  name?: string;
+  input?: unknown;
+  tool_use_id?: string;
+  content?: unknown;
+  is_error?: boolean;
 }
 
 function getInitialTheme(): boolean {
@@ -142,6 +152,19 @@ export default function App() {
       const text = await response.text();
       const lines = text.split("\n");
 
+      const pendingMessages: Message[] = [];
+
+      const appendToolEvents = (events: ToolEvent[]) => {
+        for (const event of events) {
+          pendingMessages.push({
+            id: generateId(),
+            type: "tool",
+            content: "",
+            tool: event,
+          });
+        }
+      };
+
       for (const line of lines) {
         if (line.startsWith("data: ")) {
           const data = line.slice(6);
@@ -151,35 +174,55 @@ export default function App() {
             if (parsed.type === "assistant" && parsed.message?.content) {
               for (const block of parsed.message.content) {
                 if (block.type === "text") {
-                  setMessages(prev => [...prev, {
+                  pendingMessages.push({
                     id: generateId(),
                     type: "assistant",
                     content: block.text,
-                  }]);
+                  });
+                } else if (block.type === "tool_use") {
+                  appendToolEvents([
+                    {
+                      type: "tool_use",
+                      name: block.name,
+                      input: block.input,
+                      tool_use_id: block.id,
+                    },
+                  ]);
+                } else if (block.type === "tool_result") {
+                  appendToolEvents([
+                    {
+                      type: "tool_result",
+                      tool_use_id: block.tool_use_id,
+                      content: block.content,
+                      is_error: block.is_error,
+                    },
+                  ]);
                 }
               }
+            } else if (parsed.tool_events) {
+              appendToolEvents(parsed.tool_events);
             } else if (parsed.type === "result") {
               if (parsed.result) {
-                setMessages(prev => [...prev, {
+                pendingMessages.push({
                   id: generateId(),
                   type: "assistant",
                   content: parsed.result,
-                }]);
+                });
               }
             } else if (parsed.content) {
-              setMessages(prev => [...prev, {
+              pendingMessages.push({
                 id: generateId(),
                 type: "assistant",
                 content: parsed.content,
-              }]);
+              });
             }
           } catch {
             if (data.trim()) {
-              setMessages(prev => [...prev, {
+              pendingMessages.push({
                 id: generateId(),
                 type: "assistant",
                 content: data,
-              }]);
+              });
             }
           }
         }
@@ -189,22 +232,29 @@ export default function App() {
       if (!text.includes("data: ")) {
         try {
           const json = JSON.parse(text);
+          if (json.tool_events) {
+            appendToolEvents(json.tool_events);
+          }
           if (json.content) {
-            setMessages(prev => [...prev, {
+            pendingMessages.push({
               id: generateId(),
               type: "assistant",
               content: json.content,
-            }]);
+            });
           }
         } catch {
           if (text.trim()) {
-            setMessages(prev => [...prev, {
+            pendingMessages.push({
               id: generateId(),
               type: "assistant",
               content: text,
-            }]);
+            });
           }
         }
+      }
+
+      if (pendingMessages.length) {
+        setMessages(prev => [...prev, ...pendingMessages]);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send message");
@@ -231,7 +281,7 @@ export default function App() {
   return (
     <div className="app">
       <header>
-        <span className="logo">~ monios</span>
+        <span className="logo">monios</span>
         <div className="header-actions">
           {auth.isAuthenticated ? (
             // Authenticated user display
@@ -299,8 +349,26 @@ export default function App() {
         )}
 
         {messages.map((msg) => (
-          <div key={msg.id} className={`message ${msg.type}`}>
-            <div className="message-content">{msg.content}</div>
+          <div
+            key={msg.id}
+            className={`message ${msg.type === "tool" ? "assistant" : msg.type}`}
+          >
+            {msg.type === "tool" && msg.tool ? (
+              msg.tool.type === "tool_use" ? (
+                <div className="tool-use">
+                  <div className="tool-name">tool: {msg.tool.name}</div>
+                  <div className="tool-input">
+                    {JSON.stringify(msg.tool.input ?? {}, null, 2)}
+                  </div>
+                </div>
+              ) : (
+                <div className="tool-result">
+                  {JSON.stringify(msg.tool.content ?? "", null, 2)}
+                </div>
+              )
+            ) : (
+              <div className="message-content">{msg.content}</div>
+            )}
           </div>
         ))}
 

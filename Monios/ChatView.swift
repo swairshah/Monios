@@ -64,14 +64,9 @@ struct ChatView: View {
 
     private var headerView: some View {
         HStack {
-            HStack(spacing: 8) {
-                Text("~")
-                    .font(TerminalTheme.monoFontLarge)
-                    .foregroundColor(TerminalTheme.accent)
-                Text("monios")
-                    .font(TerminalTheme.monoFontTitle)
-                    .foregroundColor(TerminalTheme.primaryText)
-            }
+            Text("monios")
+                .font(TerminalTheme.monoFontTitle)
+                .foregroundColor(TerminalTheme.primaryText)
 
             Spacer()
 
@@ -153,33 +148,15 @@ struct ChatView: View {
             Spacer()
                 .frame(height: 60)
 
-            Text("Build something cool")
+            Text("Start a conversation")
                 .font(TerminalTheme.monoFontTitle)
                 .foregroundColor(TerminalTheme.primaryText)
-
-            Text("a minimal chat app with that sweet terminal aesthetic. dark mode. monospace. vibes.")
-                .font(TerminalTheme.monoFont)
-                .foregroundColor(TerminalTheme.secondaryText)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 40)
 
             if let user = authManager.currentUser {
                 Text("signed in as \(user.email)")
                     .font(TerminalTheme.monoFontSmall)
                     .foregroundColor(TerminalTheme.mutedText)
             }
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("$ say hello")
-                    .font(TerminalTheme.monoFont)
-                    .foregroundColor(TerminalTheme.accent)
-                Text("# start a conversation")
-                    .font(TerminalTheme.monoFontSmall)
-                    .foregroundColor(TerminalTheme.mutedText)
-            }
-            .codeBlockStyle()
-            .padding(.horizontal, 40)
-            .padding(.top, 20)
 
             Spacer()
         }

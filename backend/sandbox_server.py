@@ -16,6 +16,8 @@ from claude_agent_sdk import (
     AssistantMessage,
     TextBlock,
     SystemMessage,
+    ToolUseBlock,
+    ToolResultBlock,
 )
 
 SYSTEM_PROMPT = "You are a helpful assistant in a terminal-aesthetic chat app called Monios. Keep responses concise and friendly."
@@ -87,7 +89,7 @@ async def get_client() -> ClaudeSDKClient:
     return _client
 
 
-async def chat(message: str) -> tuple[str, str]:
+async def chat(message: str) -> tuple[str, str, list[dict[str, object]]]:
     """Send message and get response."""
     global _session_id
     client = await get_client()
@@ -98,6 +100,7 @@ async def chat(message: str) -> tuple[str, str]:
         await client.query(prompt=message)
 
     response_text = ""
+    tool_events: list[dict[str, object]] = []
     new_session_id = None
 
     async for msg in client.receive_response():
@@ -108,12 +111,30 @@ async def chat(message: str) -> tuple[str, str]:
             for block in msg.content:
                 if isinstance(block, TextBlock):
                     response_text += block.text
+                elif isinstance(block, ToolUseBlock):
+                    tool_events.append(
+                        {
+                            "type": "tool_use",
+                            "name": block.name,
+                            "input": block.input,
+                            "tool_use_id": block.id,
+                        }
+                    )
+                elif isinstance(block, ToolResultBlock):
+                    tool_events.append(
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": block.tool_use_id,
+                            "content": block.content,
+                            "is_error": block.is_error,
+                        }
+                    )
 
     if new_session_id:
         _session_id = new_session_id
         _save_session_id(new_session_id)
 
-    return response_text, _session_id
+    return response_text, _session_id, tool_events
 
 
 async def clear():
@@ -141,8 +162,12 @@ class ChatHandler(BaseHTTPRequestHandler):
             message = data.get("message", "")
 
             try:
-                response_text, session_id = _loop.run_until_complete(chat(message))
-                result = {"content": response_text, "session_id": session_id}
+                response_text, session_id, tool_events = _loop.run_until_complete(chat(message))
+                result = {
+                    "content": response_text,
+                    "session_id": session_id,
+                    "tool_events": tool_events,
+                }
                 self.send_response(200)
             except Exception as e:
                 result = {
