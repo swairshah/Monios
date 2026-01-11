@@ -2,7 +2,7 @@
 //  SessionView.swift
 //  Monios
 //
-//  Session information sidebar panel
+//  Session information sidebar panel with Liquid Glass styling
 //
 
 import SwiftUI
@@ -45,7 +45,6 @@ struct SessionView: View {
                 .padding(20)
             }
         }
-        .background(TerminalTheme.background)
     }
 
     private var headerView: some View {
@@ -61,19 +60,12 @@ struct SessionView: View {
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(TerminalTheme.secondaryText)
                     .padding(8)
-                    .background(TerminalTheme.cardBackground)
-                    .cornerRadius(6)
+                    .glassButton(cornerRadius: 8)
             }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
-        .background(TerminalTheme.surfaceBackground)
-        .overlay(
-            Rectangle()
-                .fill(TerminalTheme.border)
-                .frame(height: 1),
-            alignment: .bottom
-        )
+        .glassHeader()
     }
 
     private func sectionView<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
@@ -87,12 +79,7 @@ struct SessionView: View {
             }
             .padding(16)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(TerminalTheme.cardBackground)
-            .cornerRadius(8)
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(TerminalTheme.border, lineWidth: 1)
-            )
+            .glassCard(cornerRadius: 12)
         }
     }
 
@@ -102,10 +89,18 @@ struct SessionView: View {
                 .font(TerminalTheme.monoFontSmall)
                 .foregroundColor(TerminalTheme.secondaryText)
             Spacer()
-            Text(value)
-                .font(TerminalTheme.monoFontSmall)
-                .foregroundColor(valueColor)
-                .lineLimit(1)
+            HStack(spacing: 6) {
+                if valueColor == .green {
+                    Circle()
+                        .fill(Color.green.opacity(0.9))
+                        .frame(width: 6, height: 6)
+                        .shadow(color: .green.opacity(0.5), radius: 3)
+                }
+                Text(value)
+                    .font(TerminalTheme.monoFontSmall)
+                    .foregroundColor(valueColor == .green ? .green : valueColor)
+                    .lineLimit(1)
+            }
         }
     }
 
@@ -139,14 +134,38 @@ struct SessionView: View {
                     .font(.system(size: 10))
                     .foregroundColor(TerminalTheme.mutedText)
             }
-            .foregroundColor(isDestructive ? .red.opacity(0.8) : TerminalTheme.primaryText)
+            .foregroundColor(isDestructive ? .red.opacity(0.9) : TerminalTheme.primaryText)
             .padding(14)
-            .background(TerminalTheme.cardBackground)
-            .cornerRadius(8)
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(TerminalTheme.border, lineWidth: 1)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(.ultraThinMaterial)
+
+                    if isDestructive {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Color.red.opacity(0.08))
+                    }
+
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.white.opacity(0.06), Color.clear],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                }
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .stroke(
+                        isDestructive
+                            ? Color.red.opacity(0.2)
+                            : Color.white.opacity(0.12),
+                        lineWidth: 0.5
+                    )
+            )
+            .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
         }
     }
 
