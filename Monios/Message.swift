@@ -2,7 +2,7 @@
 //  Message.swift
 //  Monios
 //
-//  Chat message model and view components
+//  Chat message model and view components with Liquid Glass styling
 //
 
 import SwiftUI
@@ -35,12 +35,47 @@ struct MessageBubbleView: View {
                     .foregroundColor(TerminalTheme.primaryText)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
-                    .background(message.isUser ? TerminalTheme.userMessage : TerminalTheme.assistantMessage)
-                    .cornerRadius(8)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(TerminalTheme.border, lineWidth: 1)
+                    .background(
+                        ZStack {
+                            // Glass material base
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(message.isUser ? .thinMaterial : .ultraThinMaterial)
+
+                            // Tinted overlay
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(message.isUser
+                                    ? TerminalTheme.accent.opacity(0.08)
+                                    : Color.white.opacity(0.02))
+
+                            // Shine gradient
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(0.1),
+                                            Color.clear
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        }
                     )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(message.isUser ? 0.3 : 0.15),
+                                        Color.white.opacity(0.05)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 0.5
+                            )
+                    )
+                    .shadow(color: .black.opacity(0.12), radius: 8, x: 0, y: 4)
 
                 Text(formatTime(message.timestamp))
                     .font(TerminalTheme.monoFontSmall)
@@ -77,12 +112,29 @@ struct TypingIndicatorView: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 14)
-                .background(TerminalTheme.assistantMessage)
-                .cornerRadius(8)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(TerminalTheme.border, lineWidth: 1)
+                .background(
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(.ultraThinMaterial)
+
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.08),
+                                        Color.clear
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                    }
                 )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color.white.opacity(0.12), lineWidth: 0.5)
+                )
+                .shadow(color: .black.opacity(0.1), radius: 6, x: 0, y: 3)
             }
 
             Spacer(minLength: 50)

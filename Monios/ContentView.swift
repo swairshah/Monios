@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  Monios
 //
-//  Root view with authentication and swipeable panels
+//  Root view with authentication and swipeable Liquid Glass panels
 //
 
 import SwiftUI
@@ -64,9 +64,33 @@ struct ContentView: View {
                         onClearChat: { messages.removeAll() }
                     )
                     .frame(width: panelWidth)
+                    .background(
+                        ZStack {
+                            // Glass background
+                            Rectangle()
+                                .fill(.ultraThinMaterial)
+
+                            // Subtle gradient overlay
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.05),
+                                    Color.clear
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        }
+                        .ignoresSafeArea()
+                    )
+                    .overlay(
+                        Rectangle()
+                            .fill(Color.white.opacity(0.1))
+                            .frame(width: 0.5),
+                        alignment: .trailing
+                    )
                     .transition(.move(edge: .leading))
                     .offset(x: -geometry.size.width / 2 + panelWidth / 2 + leftPanelOffset)
-                    .shadow(color: .black.opacity(0.3), radius: 20, x: 5, y: 0)
+                    .shadow(color: .black.opacity(0.4), radius: 30, x: 10, y: 0)
                 }
 
                 // Right Panel - User Profile (swipe left to open)
@@ -76,9 +100,33 @@ struct ContentView: View {
                         authManager: authManager
                     )
                     .frame(width: panelWidth)
+                    .background(
+                        ZStack {
+                            // Glass background
+                            Rectangle()
+                                .fill(.ultraThinMaterial)
+
+                            // Subtle gradient overlay
+                            LinearGradient(
+                                colors: [
+                                    Color.clear,
+                                    Color.white.opacity(0.05)
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        }
+                        .ignoresSafeArea()
+                    )
+                    .overlay(
+                        Rectangle()
+                            .fill(Color.white.opacity(0.1))
+                            .frame(width: 0.5),
+                        alignment: .leading
+                    )
                     .transition(.move(edge: .trailing))
                     .offset(x: geometry.size.width / 2 - panelWidth / 2 + rightPanelOffset)
-                    .shadow(color: .black.opacity(0.3), radius: 20, x: -5, y: 0)
+                    .shadow(color: .black.opacity(0.4), radius: 30, x: -10, y: 0)
                 }
             }
             .gesture(
@@ -115,7 +163,7 @@ struct ContentView: View {
         let leftProgress = (showSessionPanel ? panelWidth + leftDragOffset : leftDragOffset) / panelWidth
         let rightProgress = (showProfilePanel ? panelWidth - rightDragOffset : -rightDragOffset) / panelWidth
         let progress = max(leftProgress, rightProgress)
-        return min(0.4, progress * 0.4)
+        return min(0.5, progress * 0.5)
     }
 
     // MARK: - Gesture Handling

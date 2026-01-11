@@ -2,7 +2,7 @@
 //  UserProfileView.swift
 //  Monios
 //
-//  User profile panel with editable info and version history
+//  User profile panel with editable info and version history - Liquid Glass styling
 //
 
 import SwiftUI
@@ -45,6 +45,8 @@ struct UserProfileView: View {
                                 Image(systemName: "pencil")
                                     .font(.system(size: 14))
                                     .foregroundColor(TerminalTheme.secondaryText)
+                                    .padding(6)
+                                    .glassButton(cornerRadius: 6)
                             }
                         }
                     }
@@ -60,7 +62,6 @@ struct UserProfileView: View {
                 .padding(20)
             }
         }
-        .background(TerminalTheme.background)
         .onAppear {
             loadProfile()
         }
@@ -73,8 +74,7 @@ struct UserProfileView: View {
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(TerminalTheme.secondaryText)
                     .padding(8)
-                    .background(TerminalTheme.cardBackground)
-                    .cornerRadius(6)
+                    .glassButton(cornerRadius: 8)
             }
 
             Spacer()
@@ -85,13 +85,7 @@ struct UserProfileView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
-        .background(TerminalTheme.surfaceBackground)
-        .overlay(
-            Rectangle()
-                .fill(TerminalTheme.border)
-                .frame(height: 1),
-            alignment: .bottom
-        )
+        .glassHeader()
     }
 
     private var versionNavigator: some View {
@@ -100,6 +94,8 @@ struct UserProfileView: View {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(currentVersionIndex > 0 ? TerminalTheme.primaryText : TerminalTheme.mutedText)
+                    .padding(6)
+                    .glassButton(cornerRadius: 6)
             }
             .disabled(currentVersionIndex <= 0)
 
@@ -122,16 +118,18 @@ struct UserProfileView: View {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(currentVersionIndex < versions.count - 1 ? TerminalTheme.primaryText : TerminalTheme.mutedText)
+                    .padding(6)
+                    .glassButton(cornerRadius: 6)
             }
             .disabled(currentVersionIndex >= versions.count - 1)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
-        .background(TerminalTheme.cardBackground)
+        .background(.thinMaterial)
         .overlay(
             Rectangle()
-                .fill(TerminalTheme.border)
-                .frame(height: 1),
+                .fill(Color.white.opacity(0.08))
+                .frame(height: 0.5),
             alignment: .bottom
         )
     }
@@ -152,12 +150,7 @@ struct UserProfileView: View {
             }
         }
         .frame(maxWidth: .infinity, minHeight: 200, alignment: .topLeading)
-        .background(TerminalTheme.cardBackground)
-        .cornerRadius(8)
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(TerminalTheme.border, lineWidth: 1)
-        )
+        .glassCard(cornerRadius: 12)
     }
 
     private var editingView: some View {
@@ -166,15 +159,22 @@ struct UserProfileView: View {
                 .font(TerminalTheme.monoFont)
                 .foregroundColor(TerminalTheme.primaryText)
                 .scrollContentBackground(.hidden)
-                .background(TerminalTheme.cardBackground)
                 .frame(minHeight: 200)
                 .padding(12)
-                .background(TerminalTheme.cardBackground)
-                .cornerRadius(8)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(TerminalTheme.accent, lineWidth: 1)
+                .background(
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(.ultraThinMaterial)
+
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(TerminalTheme.accent.opacity(0.05))
+                    }
                 )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(TerminalTheme.accent.opacity(0.4), lineWidth: 1)
+                )
+                .shadow(color: TerminalTheme.accent.opacity(0.15), radius: 8)
 
             HStack(spacing: 12) {
                 Button(action: { cancelEditing() }) {
@@ -183,22 +183,41 @@ struct UserProfileView: View {
                         .foregroundColor(TerminalTheme.secondaryText)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
-                        .background(TerminalTheme.cardBackground)
-                        .cornerRadius(6)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6)
-                                .stroke(TerminalTheme.border, lineWidth: 1)
-                        )
+                        .glassButton(cornerRadius: 8)
                 }
 
                 Button(action: { saveProfile() }) {
                     Text("save")
                         .font(TerminalTheme.monoFontSmall)
-                        .foregroundColor(TerminalTheme.background)
+                        .foregroundColor(.white)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 10)
-                        .background(TerminalTheme.accent)
-                        .cornerRadius(6)
+                        .background(
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [TerminalTheme.accent, TerminalTheme.accent.opacity(0.8)],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color.white.opacity(0.2), Color.clear],
+                                            startPoint: .top,
+                                            endPoint: .center
+                                        )
+                                    )
+                            }
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
+                        )
+                        .shadow(color: TerminalTheme.accent.opacity(0.4), radius: 8, x: 0, y: 4)
                 }
             }
         }

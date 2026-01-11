@@ -2,7 +2,7 @@
 //  ChatView.swift
 //  Monios
 //
-//  Main chat interface with terminal aesthetic
+//  Main chat interface with Liquid Glass aesthetic
 //
 
 import SwiftUI
@@ -78,9 +78,11 @@ struct ChatView: View {
                         .font(TerminalTheme.monoFontSmall)
                         .foregroundColor(TerminalTheme.secondaryText)
                 } else {
+                    // Glass status indicator
                     Circle()
-                        .fill(isConnected ? Color.green.opacity(0.8) : Color.red.opacity(0.8))
+                        .fill(isConnected ? Color.green.opacity(0.9) : Color.red.opacity(0.9))
                         .frame(width: 8, height: 8)
+                        .shadow(color: isConnected ? .green.opacity(0.5) : .red.opacity(0.5), radius: 4)
                     Text(isConnected ? "connected" : "disconnected")
                         .font(TerminalTheme.monoFontSmall)
                         .foregroundColor(TerminalTheme.secondaryText)
@@ -91,6 +93,8 @@ struct ChatView: View {
                             Image(systemName: "arrow.clockwise")
                                 .font(.system(size: 12))
                                 .foregroundColor(TerminalTheme.secondaryText)
+                                .padding(6)
+                                .glassButton(cornerRadius: 6)
                         }
                     }
                 }
@@ -98,13 +102,7 @@ struct ChatView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
-        .background(TerminalTheme.surfaceBackground)
-        .overlay(
-            Rectangle()
-                .fill(TerminalTheme.border)
-                .frame(height: 1),
-            alignment: .bottom
-        )
+        .glassHeader()
         .onTapGesture {
             isInputFocused = false
         }
@@ -179,7 +177,18 @@ struct ChatView: View {
                 Button(action: sendMessage) {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.system(size: 32))
-                        .foregroundColor(inputText.isEmpty ? TerminalTheme.mutedText : TerminalTheme.accent)
+                        .foregroundStyle(
+                            inputText.isEmpty
+                                ? AnyShapeStyle(TerminalTheme.mutedText)
+                                : AnyShapeStyle(
+                                    LinearGradient(
+                                        colors: [TerminalTheme.accent, TerminalTheme.accent.opacity(0.8)],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                )
+                        )
+                        .shadow(color: inputText.isEmpty ? .clear : TerminalTheme.accent.opacity(0.4), radius: 8)
                 }
                 .disabled(inputText.isEmpty)
             } else {
@@ -191,11 +200,11 @@ struct ChatView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
-        .background(TerminalTheme.surfaceBackground)
+        .background(.regularMaterial)
         .overlay(
             Rectangle()
-                .fill(TerminalTheme.border)
-                .frame(height: 1),
+                .fill(Color.white.opacity(0.08))
+                .frame(height: 0.5),
             alignment: .top
         )
     }
