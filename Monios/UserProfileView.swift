@@ -128,7 +128,7 @@ struct UserProfileView: View {
         .background(.thinMaterial)
         .overlay(
             Rectangle()
-                .fill(Color.white.opacity(0.08))
+                .fill(AdaptiveColors.glassHighlight.opacity(0.08))
                 .frame(height: 0.5),
             alignment: .bottom
         )
@@ -206,7 +206,7 @@ struct UserProfileView: View {
                                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                                     .fill(
                                         LinearGradient(
-                                            colors: [Color.white.opacity(0.2), Color.clear],
+                                            colors: [AdaptiveColors.glassHighlight.opacity(0.2), Color.clear],
                                             startPoint: .top,
                                             endPoint: .center
                                         )
@@ -215,7 +215,7 @@ struct UserProfileView: View {
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
+                                .stroke(AdaptiveColors.glassHighlight.opacity(0.3), lineWidth: 0.5)
                         )
                         .shadow(color: TerminalTheme.accent.opacity(0.4), radius: 8, x: 0, y: 4)
                 }

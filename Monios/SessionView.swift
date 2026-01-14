@@ -149,7 +149,7 @@ struct SessionView: View {
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
                         .fill(
                             LinearGradient(
-                                colors: [Color.white.opacity(0.06), Color.clear],
+                                colors: [AdaptiveColors.glassHighlight.opacity(0.06), Color.clear],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -161,11 +161,11 @@ struct SessionView: View {
                     .stroke(
                         isDestructive
                             ? Color.red.opacity(0.2)
-                            : Color.white.opacity(0.12),
+                            : AdaptiveColors.glassHighlight.opacity(0.12),
                         lineWidth: 0.5
                     )
             )
-            .shadow(color: .black.opacity(0.08), radius: 4, x: 0, y: 2)
+            .shadow(color: AdaptiveColors.glassShadow.opacity(0.08), radius: 4, x: 0, y: 2)
         }
     }
 

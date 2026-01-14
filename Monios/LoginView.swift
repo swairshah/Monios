@@ -10,25 +10,18 @@ import AuthenticationServices
 
 struct LoginView: View {
     @ObservedObject var authManager: AuthManager
+    @Environment(\.colorScheme) var colorScheme
     @State private var showingError = false
 
     var body: some View {
         ZStack {
             // Gradient background for glass effect contrast
-            LinearGradient(
-                colors: [
-                    Color(red: 0.05, green: 0.06, blue: 0.08),
-                    Color(red: 0.08, green: 0.09, blue: 0.12),
-                    Color(red: 0.06, green: 0.07, blue: 0.10)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            TerminalTheme.background
+                .ignoresSafeArea()
 
             // Subtle ambient glow
             Circle()
-                .fill(TerminalTheme.accent.opacity(0.08))
+                .fill(TerminalTheme.accent.opacity(colorScheme == .dark ? 0.08 : 0.12))
                 .blur(radius: 100)
                 .offset(y: -200)
                 .ignoresSafeArea()
@@ -66,10 +59,10 @@ struct LoginView: View {
                             }
                         }
                     )
-                    .signInWithAppleButtonStyle(.white)
+                    .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
                     .frame(height: 50)
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+                    .shadow(color: AdaptiveColors.glassShadow.opacity(0.2), radius: 10, x: 0, y: 5)
 
                     // Google Sign In button with glass
                     Button(action: {
@@ -92,13 +85,13 @@ struct LoginView: View {
                                     .fill(.ultraThinMaterial)
 
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .fill(Color.white.opacity(0.05))
+                                    .fill(AdaptiveColors.glassHighlight.opacity(0.05))
 
                                 // Shine effect
                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                                     .fill(
                                         LinearGradient(
-                                            colors: [Color.white.opacity(0.1), Color.clear],
+                                            colors: [AdaptiveColors.glassHighlight.opacity(0.1), Color.clear],
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
                                         )
@@ -109,14 +102,14 @@ struct LoginView: View {
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
                                 .stroke(
                                     LinearGradient(
-                                        colors: [Color.white.opacity(0.25), Color.white.opacity(0.08)],
+                                        colors: [AdaptiveColors.glassHighlight.opacity(0.25), AdaptiveColors.glassHighlight.opacity(0.08)],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     ),
                                     lineWidth: 0.5
                                 )
                         )
-                        .shadow(color: .black.opacity(0.15), radius: 10, x: 0, y: 5)
+                        .shadow(color: AdaptiveColors.glassShadow.opacity(0.15), radius: 10, x: 0, y: 5)
                     }
 
                     // Dev mode button (for testing without real auth)
@@ -161,7 +154,7 @@ struct LoginView: View {
 
     private var loadingOverlay: some View {
         ZStack {
-            Color.black.opacity(0.5)
+            AdaptiveColors.glassShadow.opacity(0.5)
                 .ignoresSafeArea()
 
             VStack(spacing: 16) {

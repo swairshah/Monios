@@ -20,17 +20,41 @@ struct ChatView: View {
     private let apiClient = APIClient(tokenStorage: TokenStorage())
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            headerView
+        ZStack {
+            // Background
+            ZStack {
+                TerminalTheme.background
+                LinearGradient(
+                    colors: [
+                        TerminalTheme.accent.opacity(0.05),
+                        Color.clear,
+                        TerminalTheme.accentBlue.opacity(0.03)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+            .ignoresSafeArea()
 
-            // Messages
+            // Messages scroll view (full screen)
             messagesScrollView
 
-            // Input
-            inputView
+            // Floating header at top
+            VStack {
+                headerView
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                Spacer()
+            }
+
+            // Floating input at bottom
+            VStack {
+                Spacer()
+                inputView
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 8)
+            }
         }
-        .background(TerminalTheme.background)
         .onAppear {
             checkConnection()
         }
@@ -63,46 +87,43 @@ struct ChatView: View {
     }
 
     private var headerView: some View {
-        HStack {
+        HStack(spacing: 12) {
             Text("monios")
-                .font(TerminalTheme.monoFontTitle)
+                .font(TerminalTheme.monoFontLarge)
                 .foregroundColor(TerminalTheme.primaryText)
 
             Spacer()
 
-            HStack(spacing: 8) {
+            HStack(spacing: 6) {
                 if isCheckingConnection {
                     ProgressView()
-                        .scaleEffect(0.7)
-                    Text("connecting...")
+                        .scaleEffect(0.6)
+                    Text("...")
                         .font(TerminalTheme.monoFontSmall)
                         .foregroundColor(TerminalTheme.secondaryText)
                 } else {
-                    // Glass status indicator
                     Circle()
                         .fill(isConnected ? Color.green.opacity(0.9) : Color.red.opacity(0.9))
                         .frame(width: 8, height: 8)
                         .shadow(color: isConnected ? .green.opacity(0.5) : .red.opacity(0.5), radius: 4)
-                    Text(isConnected ? "connected" : "disconnected")
+                    Text(isConnected ? "online" : "offline")
                         .font(TerminalTheme.monoFontSmall)
                         .foregroundColor(TerminalTheme.secondaryText)
 
-                    // Retry button when disconnected
                     if !isConnected {
                         Button(action: { checkConnection() }) {
                             Image(systemName: "arrow.clockwise")
-                                .font(.system(size: 12))
+                                .font(.system(size: 10))
                                 .foregroundColor(TerminalTheme.secondaryText)
-                                .padding(6)
-                                .glassButton(cornerRadius: 6)
                         }
                     }
                 }
             }
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 16)
-        .glassHeader()
+        .padding(.vertical, 12)
+        .background(.clear)
+        .floatingGlassEffect()
         .onTapGesture {
             isInputFocused = false
         }
@@ -123,19 +144,28 @@ struct ChatView: View {
                         if isTyping {
                             TypingIndicatorView()
                         }
+
+                        // Scroll anchor at bottom
+                        Color.clear
+                            .frame(height: 1)
+                            .id("bottomAnchor")
                     }
                 }
-                .padding(.vertical, 20)
+                .padding(.top, 70) // Space for floating header
+                .padding(.bottom, 80) // Space for floating input
             }
             .scrollDismissesKeyboard(.interactively)
             .onTapGesture {
                 isInputFocused = false
             }
             .onChange(of: messages.count) { _, _ in
-                if let lastMessage = messages.last {
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        proxy.scrollTo(lastMessage.id, anchor: .bottom)
-                    }
+                withAnimation(.easeOut(duration: 0.3)) {
+                    proxy.scrollTo("bottomAnchor", anchor: .bottom)
+                }
+            }
+            .onChange(of: isTyping) { _, _ in
+                withAnimation(.easeOut(duration: 0.3)) {
+                    proxy.scrollTo("bottomAnchor", anchor: .bottom)
                 }
             }
         }
@@ -146,14 +176,39 @@ struct ChatView: View {
             Spacer()
                 .frame(height: 60)
 
-            Text("Start a conversation")
-                .font(TerminalTheme.monoFontTitle)
-                .foregroundColor(TerminalTheme.primaryText)
+            if !isConnected && !isCheckingConnection {
+                // Disconnected state - show in center
+                VStack(spacing: 16) {
+                    Image(systemName: "wifi.slash")
+                        .font(.system(size: 40))
+                        .foregroundColor(TerminalTheme.mutedText)
 
-            if let user = authManager.currentUser {
-                Text("signed in as \(user.email)")
-                    .font(TerminalTheme.monoFontSmall)
-                    .foregroundColor(TerminalTheme.mutedText)
+                    Text("backend not connected")
+                        .font(TerminalTheme.monoFontLarge)
+                        .foregroundColor(TerminalTheme.mutedText)
+
+                    Button(action: { checkConnection() }) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "arrow.clockwise")
+                            Text("retry")
+                        }
+                        .font(TerminalTheme.monoFont)
+                        .foregroundColor(TerminalTheme.primaryText)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 12)
+                        .glassButton(cornerRadius: 10)
+                    }
+                }
+            } else {
+                Text("Start a conversation")
+                    .font(TerminalTheme.monoFontTitle)
+                    .foregroundColor(TerminalTheme.primaryText)
+
+                if let user = authManager.currentUser {
+                    Text("signed in as \(user.email)")
+                        .font(TerminalTheme.monoFontSmall)
+                        .foregroundColor(TerminalTheme.mutedText)
+                }
             }
 
             Spacer()
@@ -162,51 +217,37 @@ struct ChatView: View {
 
     private var inputView: some View {
         HStack(spacing: 12) {
-            Text(">")
-                .font(TerminalTheme.monoFontLarge)
-                .foregroundColor(isConnected ? TerminalTheme.accent : TerminalTheme.mutedText)
-
-            if isConnected {
-                TextField("type a message...", text: $inputText)
-                    .textFieldStyle(TerminalTextFieldStyle())
-                    .focused($isInputFocused)
-                    .onSubmit {
-                        sendMessage()
-                    }
-
-                Button(action: sendMessage) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.system(size: 32))
-                        .foregroundStyle(
-                            inputText.isEmpty
-                                ? AnyShapeStyle(TerminalTheme.mutedText)
-                                : AnyShapeStyle(
-                                    LinearGradient(
-                                        colors: [TerminalTheme.accent, TerminalTheme.accent.opacity(0.8)],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                )
-                        )
-                        .shadow(color: inputText.isEmpty ? .clear : TerminalTheme.accent.opacity(0.4), radius: 8)
+            TextField(isConnected ? "type a message..." : "waiting for connection...", text: $inputText)
+                .font(TerminalTheme.monoFont)
+                .foregroundColor(TerminalTheme.primaryText)
+                .focused($isInputFocused)
+                .disabled(!isConnected)
+                .onSubmit {
+                    sendMessage()
                 }
-                .disabled(inputText.isEmpty)
-            } else {
-                Text("backend not connected")
-                    .font(TerminalTheme.monoFont)
-                    .foregroundColor(TerminalTheme.mutedText)
-                Spacer()
+
+            Button(action: sendMessage) {
+                Image(systemName: "arrow.up.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundStyle(
+                        inputText.isEmpty || !isConnected
+                            ? AnyShapeStyle(TerminalTheme.mutedText)
+                            : AnyShapeStyle(
+                                LinearGradient(
+                                    colors: [TerminalTheme.accent, TerminalTheme.accent.opacity(0.8)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                    )
+                    .shadow(color: (inputText.isEmpty || !isConnected) ? .clear : TerminalTheme.accent.opacity(0.4), radius: 8)
             }
+            .disabled(inputText.isEmpty || !isConnected)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(.regularMaterial)
-        .overlay(
-            Rectangle()
-                .fill(Color.white.opacity(0.08))
-                .frame(height: 0.5),
-            alignment: .top
-        )
+        .padding(.horizontal, 20)
+        .padding(.vertical, 14)
+        .background(.clear)
+        .floatingGlassEffect()
     }
 
     private func sendMessage() {
